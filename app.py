@@ -6,9 +6,8 @@ import os
 
 app = Flask(__name__)
 
-# Load model and scaler
+# Load model
 model = joblib.load("model.pkl")
-scaler = joblib.load("scaler.pkl")
 
 @app.route("/")
 def home():
@@ -17,6 +16,7 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
+        # Get user input
         data = {
             "Pregnancies": float(request.form["pregnancies"]),
             "Glucose": float(request.form["glucose"]),
@@ -28,31 +28,55 @@ def predict():
             "Age": float(request.form["age"]),
         }
 
-        # Create DataFrame and handle any zero values
-        df = pd.DataFrame([data])
-        columns_to_process = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
-        for column in columns_to_process:
-            if df[column].iloc[0] == 0:
-                return render_template("index.html", 
-                    error=f"Please enter a valid non-zero value for {column}")
+        # Validate inputs
+        for field, value in data.items():
+            if value < 0:
+                return render_template("index.html", error=f"{field} cannot be negative")
+            if field != "Pregnancies" and value == 0:
+                return render_template("index.html", error=f"{field} cannot be zero")
 
-        # Scale the features
-        scaled_features = scaler.transform(df)
-        
-        # Make prediction
-        prediction = model.predict(scaled_features)
-        prediction_proba = model.predict_proba(scaled_features)[0]
+        # Create DataFrame
+        df = pd.DataFrame([data])
+
+        # Add engineered features
+        df['Glucose_BMI'] = df['Glucose'] * df['BMI']
+        df['Age_BMI'] = df['Age'] * df['BMI']
+        df['Glucose_Age'] = df['Glucose'] * df['Age']
+
+        # Make prediction using pipeline (includes scaling)
+        prediction = model.predict(df)
+        prediction_proba = model.predict_proba(df)[0]
+
+        # Get confidence score
         confidence = prediction_proba[1] if prediction[0] == 1 else prediction_proba[0]
-        
+        confidence_text = f"{confidence*100:.1f}%"
+
+        # Prepare result text
         result = "Diabetic" if prediction[0] == 1 else "Not Diabetic"
-        return render_template("index.html", 
-                             result=result, 
-                             confidence=f"{confidence*100:.1f}%")
-    
+
+        # Add risk level
+        risk_level = ""
+        if prediction[0] == 1:
+            if confidence > 0.8:
+                risk_level = "High Risk"
+            else:
+                risk_level = "Moderate Risk"
+        else:
+            if confidence > 0.8:
+                risk_level = "Low Risk"
+            else:
+                risk_level = "Moderate-Low Risk"
+
+        return render_template("index.html",
+                             result=result,
+                             confidence=confidence_text,
+                             risk_level=risk_level)
+
+    except ValueError:
+        return render_template("index.html", error="Please enter valid numerical values for all fields")
     except Exception as e:
-        return render_template("index.html", 
-                             error="Please enter valid numerical values for all fields")
+        return render_template("index.html", error=f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port)

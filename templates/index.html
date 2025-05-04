@@ -313,20 +313,20 @@
             <button type="submit" class="submit-btn">Check Diabetes Risk</button>
         </form>
         
-        {% if prediction_text %}
-        <div class="alert {% if 'Diabetic' in prediction_text %}alert-danger{% else %}alert-success{% endif %}">
-            {% if error %}
-            <div class="alert alert-danger mt-3">
-                <h4>Error: {{ error }}</h4>
-            </div>
+        {% if error %}
+        <div class="alert alert-danger mt-3">
+            <h4>Error: {{ error }}</h4>
+        </div>
+        {% endif %}
+        
+        {% if result %}
+        <div class="alert {% if result == 'Diabetic' %}alert-danger{% else %}alert-success{% endif %} mt-3">
+            <h4>Prediction Result: {{ result }}</h4>
+            {% if confidence %}
+            <p>Confidence Score: {{ confidence }}</p>
             {% endif %}
-            {% if result %}
-            <div class="alert {% if result == 'Diabetic' %}alert-warning{% else %}alert-success{% endif %} mt-3">
-                <h4>Prediction: {{ result }}</h4>
-                <p>Confidence: {{ confidence }}</p>
-            </div>
-            {% endif %}
-            <p>Please consult with a healthcare professional for proper medical advice.</p>
+            <hr>
+            <p class="mb-0">Note: This is not a medical diagnosis. Please consult with a healthcare professional for proper medical advice.</p>
         </div>
         {% endif %}
         
