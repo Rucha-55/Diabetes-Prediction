@@ -315,8 +315,17 @@
         
         {% if prediction_text %}
         <div class="alert {% if 'Diabetic' in prediction_text %}alert-danger{% else %}alert-success{% endif %}">
-            <h4>{{ prediction_text }}</h4>
-            <hr>
+            {% if error %}
+            <div class="alert alert-danger mt-3">
+                <h4>Error: {{ error }}</h4>
+            </div>
+            {% endif %}
+            {% if result %}
+            <div class="alert {% if result == 'Diabetic' %}alert-warning{% else %}alert-success{% endif %} mt-3">
+                <h4>Prediction: {{ result }}</h4>
+                <p>Confidence: {{ confidence }}</p>
+            </div>
+            {% endif %}
             <p>Please consult with a healthcare professional for proper medical advice.</p>
         </div>
         {% endif %}
