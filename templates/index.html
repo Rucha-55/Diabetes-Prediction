@@ -315,18 +315,22 @@
         
         {% if error %}
         <div class="alert alert-danger mt-3">
-            <h4>Error: {{ error }}</h4>
+            <h4>{{ error }}</h4>
         </div>
         {% endif %}
-        
+
         {% if result %}
-        <div class="alert {% if result == 'Diabetic' %}alert-danger{% else %}alert-success{% endif %} mt-3">
-            <h4>Prediction Result: {{ result }}</h4>
+        <div class="alert {% if result == 'Diabetic' %}alert-danger{% else %}alert-success{% endif %} mt-4 text-center">
+            <h3 class="mb-3">Prediction Result</h3>
+            <h4 class="mb-3">{{ result }}</h4>
             {% if confidence %}
-            <p>Confidence Score: {{ confidence }}</p>
+            <p class="mb-2"><strong>Confidence:</strong> {{ confidence }}</p>
+            {% endif %}
+            {% if risk_level %}
+            <p class="mb-3"><strong>Risk Level:</strong> {{ risk_level }}</p>
             {% endif %}
             <hr>
-            <p class="mb-0">Note: This is not a medical diagnosis. Please consult with a healthcare professional for proper medical advice.</p>
+            <p class="mb-0"><small><em>Note: This is not a medical diagnosis. Please consult with a healthcare professional for proper medical advice.</em></small></p>
         </div>
         {% endif %}
         
